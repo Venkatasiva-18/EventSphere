@@ -16,6 +16,9 @@ public interface RSVPRepository extends JpaRepository<RSVP, Long> {
     
     Optional<RSVP> findByEventAndUser(Event event, User user);
     
+    @Query("SELECT r FROM RSVP r WHERE r.event.eventId = :eventId AND r.user.userId = :userId")
+    Optional<RSVP> findByEventIdAndUserId(@Param("eventId") Long eventId, @Param("userId") Long userId);
+    
     List<RSVP> findByUser(User user);
     
     List<RSVP> findByEvent(Event event);

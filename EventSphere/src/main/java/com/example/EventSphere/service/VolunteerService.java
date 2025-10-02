@@ -57,6 +57,10 @@ public class VolunteerService {
         return volunteerRepository.findByEventAndUser(event, user);
     }
     
+    public Optional<Volunteer> getVolunteerRegistrationByIds(Long eventId, Long userId) {
+        return volunteerRepository.findByEventIdAndUserId(eventId, userId);
+    }
+    
     public List<Volunteer> getUserVolunteerRegistrations(User user) {
         return volunteerRepository.findByUser(user);
     }

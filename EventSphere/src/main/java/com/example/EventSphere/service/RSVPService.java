@@ -51,6 +51,10 @@ public class RSVPService {
         return rsvpRepository.findByEventAndUser(event, user);
     }
     
+    public Optional<RSVP> getRSVPByIds(Long eventId, Long userId) {
+        return rsvpRepository.findByEventIdAndUserId(eventId, userId);
+    }
+    
     public List<RSVP> getUserRSVPs(User user) {
         return rsvpRepository.findByUser(user);
     }

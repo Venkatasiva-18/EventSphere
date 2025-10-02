@@ -31,7 +31,7 @@ public class EventController {
     
     @GetMapping("/{eventId}")
     public String eventDetails(@PathVariable Long eventId, Model model, Authentication authentication) {
-        Event event = eventService.findById(eventId)
+        Event event = eventService.findByIdWithDetails(eventId)
             .orElseThrow(() -> new RuntimeException("Event not found"));
         
         model.addAttribute("event", event);
@@ -41,9 +41,9 @@ public class EventController {
             User user = (User) authentication.getPrincipal();
             model.addAttribute("currentUser", user);
             
-            // Check if user has RSVPed
-            model.addAttribute("userRSVP", rsvpService.getRSVP(event, user));
-            model.addAttribute("userVolunteer", volunteerService.getVolunteerRegistration(event, user));
+            // Check if user has RSVPed - use IDs to avoid lazy loading issues
+            model.addAttribute("userRSVP", rsvpService.getRSVPByIds(eventId, user.getUserId()).orElse(null));
+            model.addAttribute("userVolunteer", volunteerService.getVolunteerRegistrationByIds(eventId, user.getUserId()).orElse(null));
         }
         
         return "event-details";
@@ -78,9 +78,9 @@ public class EventController {
         }
         
         try {
-            eventService.createEvent(event, user);
+            Event savedEvent = eventService.createEvent(event, user);
             redirectAttributes.addFlashAttribute("success", "Event created successfully!");
-            return "redirect:/events/" + event.getEventId();
+            return "redirect:/events/" + savedEvent.getEventId();
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Failed to create event: " + e.getMessage());
             return "redirect:/events/create";
@@ -129,7 +129,7 @@ public class EventController {
             existingEvent.setDateTime(event.getDateTime());
             existingEvent.setEndDateTime(event.getEndDateTime());
             existingEvent.setMaxParticipants(event.getMaxParticipants());
-            existingEvent.setRequiresApproval(event.isRequiresApproval());
+            existingEvent.setRequiresApproval(event.getRequiresApproval());
             
             eventService.updateEvent(existingEvent);
             redirectAttributes.addFlashAttribute("success", "Event updated successfully!");

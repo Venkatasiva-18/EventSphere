@@ -2,15 +2,17 @@ package com.example.EventSphere.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Table(name = "events")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Event {
@@ -45,11 +47,11 @@ public class Event {
     @Column
     private Integer maxParticipants;
     
-    @Column
-    private boolean requiresApproval = false;
+    @Column(name = "requires_approval")
+    private Boolean requiresApproval = false;
     
-    @Column
-    private boolean isActive = true;
+    @Column(name = "is_active")
+    private Boolean active = true;
     
     @Column
     private LocalDateTime createdAt = LocalDateTime.now();

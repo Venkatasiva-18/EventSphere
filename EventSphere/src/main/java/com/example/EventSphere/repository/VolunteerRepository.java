@@ -16,6 +16,9 @@ public interface VolunteerRepository extends JpaRepository<Volunteer, Long> {
     
     Optional<Volunteer> findByEventAndUser(Event event, User user);
     
+    @Query("SELECT v FROM Volunteer v WHERE v.event.eventId = :eventId AND v.user.userId = :userId")
+    Optional<Volunteer> findByEventIdAndUserId(@Param("eventId") Long eventId, @Param("userId") Long userId);
+    
     List<Volunteer> findByUser(User user);
     
     List<Volunteer> findByEvent(Event event);

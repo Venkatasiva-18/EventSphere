@@ -25,9 +25,10 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/", "/events", "/events/**", "/register", "/register-organizer", "/user/register", "/user/register-organizer", "/login", "/css/**", "/js/**", "/images/**").permitAll()
+                .requestMatchers("/", "/events", "/events/{id}", "/register", "/register-organizer", "/user/register", "/user/register-organizer", "/login", "/css/**", "/js/**", "/images/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/organizer/**").hasAnyRole("ORGANIZER", "ADMIN")
+                .requestMatchers("/events/create", "/events/{id}/edit", "/events/{id}/rsvp", "/events/{id}/volunteer").authenticated()
                 .requestMatchers("/user/profile", "/user/update-profile").hasAnyRole("USER", "ORGANIZER", "ADMIN")
                 .anyRequest().authenticated()
             )
@@ -42,10 +43,14 @@ public class SecurityConfig {
                 .logoutSuccessUrl("/")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
+                .clearAuthentication(true)
                 .permitAll()
             )
-            .userDetailsService(userDetailsService)
-            .csrf(csrf -> csrf.disable());
+            .sessionManagement(session -> session
+                .maximumSessions(1)
+                .maxSessionsPreventsLogin(false)
+            )
+            .userDetailsService(userDetailsService);
             
         return http.build();
     }

@@ -4,12 +4,14 @@ import com.example.EventSphere.model.Event;
 import com.example.EventSphere.model.User;
 import com.example.EventSphere.repository.EventRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class EventService {
     
     private final EventRepository eventRepository;
@@ -45,16 +47,27 @@ public class EventService {
         return eventRepository.findById(eventId);
     }
     
+    public Optional<Event> findByIdWithDetails(Long eventId) {
+        Optional<Event> eventOpt = eventRepository.findByIdWithDetails(eventId);
+        // Initialize lazy collections within transaction
+        eventOpt.ifPresent(event -> {
+            if (event.getRsvps() != null) {
+                event.getRsvps().size(); // Force initialization
+            }
+        });
+        return eventOpt;
+    }
+    
     public List<Event> getAllActiveEvents() {
-        return eventRepository.findByIsActiveTrue();
+        return eventRepository.findAllActiveWithDetails();
     }
     
     public List<Event> getUpcomingEvents() {
-        return eventRepository.findUpcomingEvents(LocalDateTime.now());
+        return eventRepository.findUpcomingEventsWithDetails(LocalDateTime.now());
     }
     
     public List<Event> getEventsByCategory(Event.Category category) {
-        return eventRepository.findByCategory(category);
+        return eventRepository.findByCategoryWithDetails(category);
     }
     
     public List<Event> getEventsByOrganizer(User organizer) {
@@ -62,11 +75,11 @@ public class EventService {
     }
     
     public List<Event> searchEvents(String keyword) {
-        return eventRepository.searchEvents(keyword);
+        return eventRepository.searchEventsWithDetails(keyword);
     }
     
     public List<Event> getEventsByLocation(String location) {
-        return eventRepository.findByLocationContaining(location);
+        return eventRepository.findByLocationContainingWithDetails(location);
     }
     
     public List<Event> getEventsByDateRange(LocalDateTime start, LocalDateTime end) {
