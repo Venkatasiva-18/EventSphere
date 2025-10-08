@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users - EventSphere Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/admin/dashboard">
+                <i class="fas fa-calendar-alt me-2"></i>EventSphere Admin
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/dashboard">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/admin/users">
+                            <i class="fas fa-users me-1"></i>Users
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/events">
+                            <i class="fas fa-calendar-alt me-1"></i>Events
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/reports">
+                            <i class="fas fa-chart-bar me-1"></i>Reports
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/public-site" title="View Public Site">
+                            <i class="fas fa-home me-1"></i>Public Site
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-shield me-1"></i>
+                            <span sec:authentication="name">Admin</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/admin/profile"><i class="fas fa-user me-2"></i>Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form th:action="@{/admin/logout}" method="post" class="d-inline w-100">
+                                    <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt me-2"></i>Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+
+    <!-- Page Header -->
+    <div class="bg-primary text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h1 class="display-5 fw-bold mb-2">Manage Users</h1>
+                    <p class="lead">User management and administration</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="container my-4">
+        <div class="card">
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="card-title mb-0">All Users</h5>
+                    </div>
+                    <div class="col-auto">
+                        <span class="badge bg-primary" th:text="${users.size()} + ' users'">0 users</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="user : ${users}">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-user-circle fa-2x text-muted me-3"></i>
+                                        <div>
+                                            <strong th:text="${user.name}">User Name</strong>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td th:text="${user.email}">user@email.com</td>
+                                <td th:text="${user.phone ?: 'N/A'}">Phone</td>
+                                <td>
+                                    <span class="badge" 
+                                          th:classappend="${user.role.name() == 'ADMIN'} ? 'bg-danger' : (${user.role.name() == 'ORGANIZER'} ? 'bg-warning' : 'bg-info')"
+                                          th:text="${user.role.toString()}">Role</span>
+                                </td>
+                                <td>
+                                    <span class="badge" 
+                                          th:classappend="${user.enabled} ? 'bg-success' : 'bg-secondary'"
+                                          th:text="${user.enabled} ? 'Active' : 'Disabled'">Status</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <!-- Enable/Disable User -->
+                                        <form th:action="@{/admin/users/{id}/enable(id=${user.userId})}" method="post" class="d-inline" th:if="${!user.enabled}">
+                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                            <button type="submit" class="btn btn-success btn-sm" title="Enable User">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                        <form th:action="@{/admin/users/{id}/disable(id=${user.userId})}" method="post" class="d-inline" th:if="${user.enabled}">
+                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                            <button type="submit" class="btn btn-warning btn-sm" title="Disable User">
+                                                <i class="fas fa-ban"></i>
+                                            </button>
+                                        </form>
+                                        
+                                        <!-- Change Role -->
+                                        <div class="dropdown d-inline">
+                                            <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Change Role">
+                                                <i class="fas fa-user-tag"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <form th:action="@{/admin/users/{id}/role(id=${user.userId})}" method="post" class="d-inline">
+                                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                                        <input type="hidden" name="role" value="USER">
+                                                        <button type="submit" class="dropdown-item" th:if="${user.role.name() != 'USER'}">Make User</button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form th:action="@{/admin/users/{id}/role(id=${user.userId})}" method="post" class="d-inline">
+                                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                                        <input type="hidden" name="role" value="ORGANIZER">
+                                                        <button type="submit" class="dropdown-item" th:if="${user.role.name() != 'ORGANIZER'}">Make Organizer</button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form th:action="@{/admin/users/{id}/role(id=${user.userId})}" method="post" class="d-inline">
+                                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                                        <input type="hidden" name="role" value="ADMIN">
+                                                        <button type="submit" class="dropdown-item" th:if="${user.role.name() != 'ADMIN'}">Make Admin</button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        
+                                        <!-- Delete User -->
+                                        <form th:action="@{/admin/users/{id}/delete(id=${user.userId})}" method="post" class="d-inline">
+                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                            <button type="submit" class="btn btn-danger btn-sm" title="Delete User" onclick="return confirm('Are you sure you want to delete this user? This action cannot be undone.')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>EventSphere</h5>
+                    <p>Connecting communities through local events</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>&copy; 2024 EventSphere. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/main.js"></script>
+</body>
+</html>

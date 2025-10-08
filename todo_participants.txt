@@ -1,0 +1,2 @@
+Implementation plan for participant/volunteer visibility:
+- Introduce event details overlay for organizers featuring tabs with cards and export buttons

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - EventSphere Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/admin/dashboard">
+                <i class="fas fa-calendar-alt me-2"></i>EventSphere Admin
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/dashboard">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/users">
+                            <i class="fas fa-users me-1"></i>Users
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/events">
+                            <i class="fas fa-calendar-alt me-1"></i>Events
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/admin/reports">
+                            <i class="fas fa-chart-bar me-1"></i>Reports
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/public-site" title="View Public Site">
+                            <i class="fas fa-home me-1"></i>Public Site
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-shield me-1"></i>
+                            <span sec:authentication="name">Admin</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/admin/profile"><i class="fas fa-user me-2"></i>Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form th:action="@{/admin/logout}" method="post" class="d-inline w-100">
+                                    <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt me-2"></i>Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="bg-primary text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h1 class="display-5 fw-bold mb-2">Reports & Analytics</h1>
+                    <p class="lead">Platform statistics and insights</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports Content -->
+    <div class="container my-4">
+        <!-- User Statistics -->
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0"><i class="fas fa-users me-2"></i>User Statistics</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="border rounded p-3 text-center">
+                                    <h3 class="text-primary mb-2" th:text="${totalUsers}">0</h3>
+                                    <p class="text-muted mb-0">Total Users</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="border rounded p-3 text-center">
+                                    <h3 class="text-warning mb-2" th:text="${totalOrganizers}">0</h3>
+                                    <p class="text-muted mb-0">Organizers</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="border rounded p-3 text-center">
+                                    <h3 class="text-danger mb-2" th:text="${totalAdmins}">0</h3>
+                                    <p class="text-muted mb-0">Administrators</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event Statistics -->
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0"><i class="fas fa-calendar-alt me-2"></i>Event Statistics</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="border rounded p-3 text-center">
+                                    <h3 class="text-success mb-2" th:text="${totalEvents}">0</h3>
+                                    <p class="text-muted mb-0">Total Events</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="border rounded p-3 text-center">
+                                    <h3 class="text-info mb-2" th:text="${activeEvents}">0</h3>
+                                    <p class="text-muted mb-0">Active Events</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="border rounded p-3 text-center">
+                                    <h3 class="text-primary mb-2" th:text="${upcomingEvents}">0</h3>
+                                    <p class="text-muted mb-0">Upcoming Events</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0"><i class="fas fa-tools me-2"></i>Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <a href="/admin/users" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-users me-2"></i>View All Users
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="/admin/events" class="btn btn-outline-success w-100">
+                                    <i class="fas fa-calendar-alt me-2"></i>View All Events
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="/admin/events?filter=pending" class="btn btn-outline-warning w-100">
+                                    <i class="fas fa-clock me-2"></i>Pending Events
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="/admin/dashboard" class="btn btn-outline-info w-100">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Platform Overview -->
+        <div class="row g-4 mt-2">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0"><i class="fas fa-info-circle me-2"></i>Platform Overview</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <tbody>
+                                    <tr>
+                                        <th width="30%">Total Users</th>
+                                        <td th:text="${totalUsers}">0</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Regular Users</th>
+                                        <td th:text="${totalUsers - totalOrganizers - totalAdmins}">0</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Event Organizers</th>
+                                        <td th:text="${totalOrganizers}">0</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Administrators</th>
+                                        <td th:text="${totalAdmins}">0</td>
+                                    </tr>
+                                    <tr class="table-light">
+                                        <th>Total Events Created</th>
+                                        <td th:text="${totalEvents}">0</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Active Events</th>
+                                        <td th:text="${activeEvents}">0</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Inactive Events</th>
+                                        <td th:text="${totalEvents - activeEvents}">0</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Upcoming Events</th>
+                                        <td th:text="${upcomingEvents}">0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>EventSphere</h5>
+                    <p>Connecting communities through local events</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>&copy; 2024 EventSphere. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/main.js"></script>
+</body>
+</html>
