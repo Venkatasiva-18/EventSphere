@@ -297,6 +297,95 @@ All changes compiled successfully with no errors.
 
 ---
 
+## Additional Fixes - Date: 2025-10-08
+
+### Issue: View Event and Edit Event Actions Causing 500 Internal Server Error
+
+**Problem:**
+- When admin clicks "View Event" or "Edit Event", it was causing a 500 Internal Server Error
+- Console showed: `GET http://localhost:8080/events/1 500 (Internal Server Error)`
+
+**Root Cause:**
+1. The `/admin/events/{eventId}/edit` endpoint was missing from AdminController (only documented, not implemented)
+2. The `EventController.eventDetails()` method only handled `User` principals, not `Admin` principals
+3. When an admin logs in, the authentication principal is an `Admin` object, not a `User` object
+4. The EventController was trying to cast the principal to `User`, which failed for admins
+
+**Fixes Implemented:**
+
+1. **Added Missing Endpoint in AdminController**
+   - Added `/admin/events/{eventId}/edit` endpoint that redirects to `/events/{eventId}/edit`
+
+2. **Updated EventController to Handle Admin Principals**
+   - Added `Admin` import to EventController
+   - Updated `eventDetails()` method to check for both `Admin` and `User` principals
+   - Admins can now view events with full organizer view (see participants and volunteers)
+   - Added `isAdminView` flag to distinguish admin views from organizer views
+
+3. **Updated Event Edit Functionality for Admins**
+   - Updated `editEventForm()` method to allow admins to edit any event
+   - Updated `updateEvent()` method to allow admins to save event changes
+   - Admins can now edit events without being the organizer
+
+**Files Modified:**
+- `src/main/java/com/example/EventSphere/controller/AdminController.java`
+  - Added `/admin/events/{eventId}/edit` endpoint
+  
+- `src/main/java/com/example/EventSphere/controller/EventController.java`
+  - Added `Admin` import
+  - Updated `eventDetails()` to handle `Admin` principals
+  - Updated `editEventForm()` to allow admins to edit events
+  - Updated `updateEvent()` to allow admins to save event changes
+
+**Compilation Status:** ✅ BUILD SUCCESS
+
+---
+
+## Additional Fixes - Date: 2025-10-08 (Part 2)
+
+### Issue: All Users (Admins, Organizers, Regular Users) Getting 500 Error When Viewing Events
+
+**Problem:**
+- Not just admins, but also organizers and regular users were experiencing 500 Internal Server Error when viewing events
+- The error was occurring for all user types
+
+**Root Cause:**
+1. **Lazy Loading Issue**: The `Event.organizer` relationship is defined with `FetchType.LAZY`
+2. **Multiple Collection Fetch**: The `findByIdWithDetails` query was trying to fetch multiple collections (`rsvps` and `volunteers`) simultaneously, which can cause Hibernate's MultipleBagFetchException
+3. **LazyInitializationException**: When `canUserManageEvent()` tried to access `event.getOrganizer().getUserId()`, the organizer proxy wasn't initialized outside the transaction context
+4. The `findById()` method was using the basic repository method which doesn't eagerly fetch the organizer
+
+**Fixes Implemented:**
+
+1. **Fixed EventRepository Queries**
+   - Removed `volunteers` from the `findByIdWithDetails` query to avoid Cartesian product issues
+   - Added new `findByIdWithOrganizer()` method that only fetches the event with its organizer
+   - This prevents Hibernate from trying to fetch multiple collections at once
+
+2. **Updated EventService Methods**
+   - Modified `findById()` to use `findByIdWithOrganizer()` instead of basic `findById()`
+   - This ensures the organizer is always eagerly loaded when needed
+   - Updated `findByIdWithDetails()` to properly initialize all lazy collections within the transaction
+
+**Files Modified:**
+- `src/main/java/com/example/EventSphere/repository/EventRepository.java`
+  - Modified `findByIdWithDetails` query (removed volunteers fetch)
+  - Added `findByIdWithOrganizer()` method
+  
+- `src/main/java/com/example/EventSphere/service/EventService.java`
+  - Updated `findById()` to use `findByIdWithOrganizer()`
+  - Enhanced `findByIdWithDetails()` to initialize volunteers and organizer
+
+**Technical Explanation:**
+- Hibernate doesn't allow fetching multiple `@OneToMany` collections with `FetchType.LAZY` in a single query (MultipleBagFetchException)
+- The solution is to fetch collections separately or use `@Transactional` methods to initialize them
+- By eagerly fetching only the organizer in the base query, we avoid the Cartesian product problem
+- Collections (rsvps, volunteers) are initialized within the transaction when needed
+
+**Compilation Status:** ✅ BUILD SUCCESS
+
+---
+
 ## Known Issues / Future Improvements
 
 ### None Currently

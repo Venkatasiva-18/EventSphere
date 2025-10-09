@@ -155,6 +155,11 @@
                                         <strong th:text="${#temporals.format(event.dateTime, 'MMM dd, yyyy')}">Date</strong>
                                         <br>
                                         <small class="text-muted" th:text="${#temporals.format(event.dateTime, 'HH:mm')}">Time</small>
+                                        <br>
+                                        <small class="text-muted" th:if="${event.registrationDeadline != null}">
+                                            Registration closes:
+                                            <span th:text="${#temporals.format(event.registrationDeadline, 'MMM dd, yyyy HH:mm')}">Deadline</span>
+                                        </small>
                                     </div>
                                 </td>
                                 <td th:text="${event.location}">Location</td>

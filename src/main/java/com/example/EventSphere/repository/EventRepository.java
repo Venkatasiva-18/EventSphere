@@ -38,8 +38,11 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     @Query("SELECT e FROM Event e WHERE e.active = true AND LOWER(e.location) LIKE LOWER(CONCAT('%', :location, '%'))")
     List<Event> findByLocationContaining(@Param("location") String location);
     
-    @Query("SELECT e FROM Event e LEFT JOIN FETCH e.organizer WHERE e.eventId = :id")
+    @Query("SELECT DISTINCT e FROM Event e LEFT JOIN FETCH e.organizer LEFT JOIN FETCH e.rsvps WHERE e.eventId = :id")
     Optional<Event> findByIdWithDetails(@Param("id") Long id);
+    
+    @Query("SELECT e FROM Event e LEFT JOIN FETCH e.organizer WHERE e.eventId = :id")
+    Optional<Event> findByIdWithOrganizer(@Param("id") Long id);
     
     @Query("SELECT DISTINCT e FROM Event e LEFT JOIN FETCH e.organizer LEFT JOIN FETCH e.rsvps")
     List<Event> findAllWithDetails();

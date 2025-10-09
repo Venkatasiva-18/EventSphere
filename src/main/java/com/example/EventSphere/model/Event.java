@@ -3,6 +3,8 @@ package com.example.EventSphere.model;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -49,8 +51,13 @@ public class Event {
     @Column(nullable = false)
     private LocalDateTime dateTime;
     
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @Column
     private LocalDateTime endDateTime;
+    
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    @Column(name = "registration_deadline")
+    private LocalDateTime registrationDeadline;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "organizer_id", nullable = false)

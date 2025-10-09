@@ -33,7 +33,34 @@ public class EventService {
     public Event updateEvent(Event event) {
         return eventRepository.save(event);
     }
+
+    public boolean isRegistrationClosed(Event event, LocalDateTime referenceTime) {
+        LocalDateTime deadline = event.getRegistrationDeadline();
+        if (deadline == null) {
+            return false;
+        }
+        return !referenceTime.isBefore(deadline);
+    }
     
+    @Transactional(readOnly = true)
+    public Event getEventWithDetails(Long eventId) {
+        Event event = eventRepository.findByIdWithDetails(eventId)
+            .orElseThrow(() -> new RuntimeException("Event not found"));
+        
+        // Initialize lazy collections within transaction to avoid LazyInitializationException
+        if (event.getRsvps() != null) {
+            event.getRsvps().size(); // Force initialization
+        }
+        if (event.getVolunteers() != null) {
+            event.getVolunteers().size(); // Force initialization
+        }
+        if (event.getOrganizer() != null) {
+            event.getOrganizer().getUserId(); // Force initialization of organizer
+        }
+        
+        return event;
+    }
+
     @Transactional
     public void deleteEvent(Long eventId) {
         Event event = eventRepository.findById(eventId)
@@ -60,7 +87,8 @@ public class EventService {
     }
     
     public Optional<Event> findById(Long eventId) {
-        return eventRepository.findById(eventId);
+        // Use findByIdWithOrganizer to eagerly fetch the organizer and avoid lazy loading issues
+        return eventRepository.findByIdWithOrganizer(eventId);
     }
     
     public Optional<Event> findByIdWithDetails(Long eventId) {
@@ -69,6 +97,12 @@ public class EventService {
         eventOpt.ifPresent(event -> {
             if (event.getRsvps() != null) {
                 event.getRsvps().size(); // Force initialization
+            }
+            if (event.getVolunteers() != null) {
+                event.getVolunteers().size(); // Force initialization
+            }
+            if (event.getOrganizer() != null) {
+                event.getOrganizer().getUserId(); // Force initialization of organizer
             }
         });
         return eventOpt;

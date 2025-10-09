@@ -33,9 +33,13 @@ public class RSVPService {
             // Update team information if provided
             if (teamName != null) {
                 rsvp.setTeamName(teamName);
+            } else {
+                rsvp.setTeamName(null);
             }
             if (teamSize != null) {
                 rsvp.setTeamSize(teamSize);
+            } else {
+                rsvp.setTeamSize(null);
             }
             return rsvpRepository.save(rsvp);
         } else {

@@ -258,4 +258,9 @@ public class AdminController {
         return "redirect:/events/" + eventId;
     }
 
+    @GetMapping("/events/{eventId}/edit")
+    public String editEvent(@PathVariable Long eventId) {
+        return "redirect:/events/" + eventId + "/edit";
+    }
+
 }

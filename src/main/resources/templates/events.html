@@ -72,8 +72,8 @@
         <div class="container">
             <div class="row">
                 <div class="col-12">
-                    <h1 class="display-5 fw-bold mb-2">Discover Events</h1>
-                    <p class="lead">Find amazing events happening in your community</p>
+                    <h1 class="display-5 fw-bold mb-2 fade-in-scroll">Discover Events</h1>
+                    <p class="lead fade-in-scroll" style="animation-delay: 0.2s;">Find amazing events happening in your community</p>
                 </div>
             </div>
         </div>
@@ -81,7 +81,7 @@
 
     <!-- Search and Filter Section -->
     <div class="container my-4">
-        <div class="card">
+        <div class="card fade-in-scroll card-glass">
             <div class="card-body">
                 <form method="get" action="/events" class="row g-3">
                     <div class="col-md-4">
@@ -125,13 +125,14 @@
     <!-- Events Grid -->
     <div class="container">
         <div class="row g-4" th:if="${events != null and !events.empty}">
-            <div class="col-lg-4 col-md-6" th:each="event : ${events}">
-                <div class="card h-100 shadow-sm" 
-                     th:classappend="${currentUser != null and event.organizer.userId == currentUser.userId} ? 'border-success border-2' : ''">
+            <div class="col-lg-4 col-md-6" th:each="event, iterStat : ${events}">
+                <div class="card h-100 shadow-sm event-card fade-in-scroll" 
+                     th:classappend="${currentUser != null and event.organizer.userId == currentUser.userId} ? 'event-card-own' : ''"
+                     th:style="'animation-delay: ' + ${iterStat.index * 0.1} + 's;'">
                     <!-- Organizer Badge Ribbon -->
                     <div th:if="${currentUser != null and event.organizer.userId == currentUser.userId}" 
                          class="position-absolute end-0 m-2" style="top: 35px; z-index: 10;">
-                        <span class="badge bg-success">
+                        <span class="badge bg-success badge-notification">
                             <i class="fas fa-star me-1"></i>Your Event
                         </span>
                     </div>
@@ -159,6 +160,16 @@
                             </small>
                         </div>
                         
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class="fas fa-hourglass-end me-1"></i>
+                                <strong>Reg. Deadline:</strong>
+                                <span th:if="${event.registrationDeadline != null}" 
+                                      th:text="${#temporals.format(event.registrationDeadline, 'MMM dd, yyyy')}">Deadline</span>
+                                <span th:if="${event.registrationDeadline == null}">N/A</span>
+                            </small>
+                        </div>
+                        
                         <!-- Show participant count with label for organizer's events -->
                         <div class="d-flex justify-content-between align-items-center">
                             <small class="text-muted">
@@ -171,7 +182,8 @@
                                class="btn btn-sm"
                                th:classappend="${currentUser != null and event.organizer.userId == currentUser.userId} ? 'btn-success' : 'btn-outline-primary'">
                                 <i th:if="${currentUser != null and event.organizer.userId == currentUser.userId}" class="fas fa-chart-line me-1"></i>
-                                <span th:text="${currentUser != null and event.organizer.userId == currentUser.userId} ? 'Manage Event' : 'View Details'">View Details</span>
+                                <span th:text="${currentUser != null and event.organizer.userId == currentUser.userId} ? 'Manage Event' : 'View Details'"
+                                      th:classappend="${currentUser != null and event.organizer.userId == currentUser.userId} ? 'text-fade-bright' : ''">View Details</span>
                             </a>
                         </div>
                     </div>
@@ -199,12 +211,13 @@
                     <p>Connecting communities through local events</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p>&copy; 2024 EventSphere. All rights reserved.</p>
+                    <p>&copy; 2025 EventSphere. All rights reserved.</p>
                 </div>
             </div>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/animations.js"></script>
 </body>
 </html>

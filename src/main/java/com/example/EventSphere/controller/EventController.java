@@ -1,6 +1,7 @@
 package com.example.EventSphere.controller;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.example.EventSphere.model.Admin;
 import com.example.EventSphere.model.Event;
 import com.example.EventSphere.model.RSVP;
 import com.example.EventSphere.model.User;
@@ -50,11 +52,20 @@ public class EventController {
         model.addAttribute("categories", Event.Category.values());
         
         boolean isOrganizerView = false;
+        boolean isAdminView = false;
+        
         if (authentication != null && authentication.isAuthenticated()) {
             Object principal = authentication.getPrincipal();
-            if (principal instanceof User) {
+            
+            if (principal instanceof Admin) {
+                // Admin is viewing the event
+                isAdminView = true;
+                isOrganizerView = true; // Admins can see all details
+                model.addAttribute("isAdmin", true);
+            } else if (principal instanceof User) {
                 User user = (User) principal;
                 model.addAttribute("currentUser", user);
+                model.addAttribute("isAdmin", false);
                 
                 // Check if user has RSVPed - use IDs to avoid lazy loading issues
                 model.addAttribute("userRSVP", rsvpService.getRSVPByIds(eventId, user.getUserId()).orElse(null));
@@ -62,7 +73,6 @@ public class EventController {
                 
                 isOrganizerView = eventService.canUserManageEvent(event, user);
             }
-            // If admin is viewing, they can see the event but not as organizer
         }
         
         if (isOrganizerView) {
@@ -74,6 +84,7 @@ public class EventController {
         }
         
         model.addAttribute("isOrganizerView", isOrganizerView);
+        model.addAttribute("isAdminView", isAdminView);
         return "event-details";
     }
     
@@ -136,8 +147,16 @@ public class EventController {
             .orElseThrow(() -> new RuntimeException("Event not found"));
         
         Object principal = authentication.getPrincipal();
+        
+        // Allow admins to edit events
+        if (principal instanceof Admin) {
+            model.addAttribute("event", event);
+            model.addAttribute("categories", Event.Category.values());
+            model.addAttribute("isAdmin", true);
+            return "edit-event";
+        }
+        
         if (!(principal instanceof User)) {
-            // Admin trying to edit - redirect to admin events page
             return "redirect:/admin/events";
         }
         
@@ -148,6 +167,7 @@ public class EventController {
         
         model.addAttribute("event", event);
         model.addAttribute("categories", Event.Category.values());
+        model.addAttribute("isAdmin", false);
         return "edit-event";
     }
     
@@ -161,14 +181,21 @@ public class EventController {
             .orElseThrow(() -> new RuntimeException("Event not found"));
         
         Object principal = authentication.getPrincipal();
-        if (!(principal instanceof User)) {
-            redirectAttributes.addFlashAttribute("error", "You don't have permission to edit this event.");
-            return "redirect:/admin/events";
+        
+        // Allow admins to update events
+        boolean canEdit = false;
+        if (principal instanceof Admin) {
+            canEdit = true;
+        } else if (principal instanceof User) {
+            User user = (User) principal;
+            canEdit = eventService.canUserManageEvent(existingEvent, user);
         }
         
-        User user = (User) principal;
-        if (!eventService.canUserManageEvent(existingEvent, user)) {
+        if (!canEdit) {
             redirectAttributes.addFlashAttribute("error", "You don't have permission to edit this event.");
+            if (principal instanceof Admin) {
+                return "redirect:/admin/events";
+            }
             return "redirect:/events/" + eventId;
         }
         
@@ -179,6 +206,7 @@ public class EventController {
             existingEvent.setLocation(event.getLocation());
             existingEvent.setDateTime(event.getDateTime());
             existingEvent.setEndDateTime(event.getEndDateTime());
+            existingEvent.setRegistrationDeadline(event.getRegistrationDeadline());
             existingEvent.setMaxParticipants(event.getMaxParticipants());
             existingEvent.setRequiresApproval(event.getRequiresApproval());
             
@@ -209,13 +237,22 @@ public class EventController {
             return "redirect:/events/" + eventId;
         }
         
-        Event event = eventService.findById(eventId)
-            .orElseThrow(() -> new RuntimeException("Event not found"));
+        Event event = eventService.getEventWithDetails(eventId);
         
         User user = (User) principal;
         
         try {
             com.example.EventSphere.model.RSVP.Status rsvpStatus = com.example.EventSphere.model.RSVP.Status.valueOf(status.toUpperCase());
+            
+            if (eventService.isRegistrationClosed(event, LocalDateTime.now())) {
+                redirectAttributes.addFlashAttribute("error", "Registrations for this event have closed.");
+                return "redirect:/events/" + eventId;
+            }
+            
+            if (eventService.isEventFull(event) && rsvpStatus == com.example.EventSphere.model.RSVP.Status.GOING) {
+                redirectAttributes.addFlashAttribute("error", "This event has reached its participant limit.");
+                return "redirect:/events/" + eventId;
+            }
             
             // Validate team information for GROUP events
             if (event.getParticipationType() == com.example.EventSphere.model.ParticipationType.GROUP 
@@ -256,12 +293,16 @@ public class EventController {
             return "redirect:/events/" + eventId;
         }
         
-        Event event = eventService.findById(eventId)
-            .orElseThrow(() -> new RuntimeException("Event not found"));
+        Event event = eventService.getEventWithDetails(eventId);
         
         User user = (User) principal;
         
         try {
+            if (eventService.isRegistrationClosed(event, LocalDateTime.now())) {
+                redirectAttributes.addFlashAttribute("error", "Volunteer registrations have closed for this event.");
+                return "redirect:/events/" + eventId;
+            }
+
             volunteerService.registerVolunteer(event, user, roleDescription);
             redirectAttributes.addFlashAttribute("success", "Volunteer registration submitted successfully!");
         } catch (Exception e) {
@@ -276,7 +317,8 @@ public class EventController {
         Event event = eventService.findById(eventId)
             .orElseThrow(() -> new RuntimeException("Event not found"));
         
-        if (!eventService.canUserManageEvent(event, getAuthenticatedUser(authentication))) {
+        // Check if user can manage event (organizer or admin)
+        if (!canManageEvent(event, authentication)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         
@@ -290,13 +332,35 @@ public class EventController {
         Event event = eventService.findById(eventId)
             .orElseThrow(() -> new RuntimeException("Event not found"));
         
-        if (!eventService.canUserManageEvent(event, getAuthenticatedUser(authentication))) {
+        // Check if user can manage event (organizer or admin)
+        if (!canManageEvent(event, authentication)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         
         List<Volunteer> volunteers = volunteerService.getEventVolunteersWithUsers(event);
         String csv = buildVolunteersCsv(event, volunteers);
         return buildCsvResponse(csv, event.getTitle(), "volunteers");
+    }
+    
+    private boolean canManageEvent(Event event, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return false;
+        }
+        
+        Object principal = authentication.getPrincipal();
+        
+        // Admins can manage any event
+        if (principal instanceof Admin) {
+            return true;
+        }
+        
+        // Organizers can manage their own events
+        if (principal instanceof User) {
+            User user = (User) principal;
+            return eventService.canUserManageEvent(event, user);
+        }
+        
+        return false;
     }
     
     private User getAuthenticatedUser(Authentication authentication) {
