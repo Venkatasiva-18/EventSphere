@@ -17,4 +17,5 @@ RUN ./mvnw clean package -DskipTests
 EXPOSE 8080
 
 # Run the generated jar (wildcard works in shell form)
-CMD java -jar target/*.jar
+CMD ["sh", "-c", "java -jar target/*.jar"]
+
