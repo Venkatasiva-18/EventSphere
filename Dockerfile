@@ -16,6 +16,5 @@ RUN ./mvnw clean package -DskipTests
 # Expose port 8080
 EXPOSE 8080
 
-# Run the generated jar
+# Run the generated jar (wildcard works in shell form)
 CMD java -jar target/*.jar
-
