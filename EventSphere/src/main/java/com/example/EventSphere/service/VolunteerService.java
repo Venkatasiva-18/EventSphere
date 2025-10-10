@@ -1,13 +1,14 @@
 package com.example.EventSphere.service;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
 import com.example.EventSphere.model.Event;
 import com.example.EventSphere.model.User;
 import com.example.EventSphere.model.Volunteer;
 import com.example.EventSphere.repository.VolunteerRepository;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class VolunteerService {
@@ -67,6 +68,10 @@ public class VolunteerService {
     
     public List<Volunteer> getEventVolunteers(Event event) {
         return volunteerRepository.findByEvent(event);
+    }
+    
+    public List<Volunteer> getEventVolunteersWithUsers(Event event) {
+        return volunteerRepository.findByEventWithUser(event);
     }
     
     public List<Volunteer> getEventVolunteersByStatus(Event event, Volunteer.Status status) {

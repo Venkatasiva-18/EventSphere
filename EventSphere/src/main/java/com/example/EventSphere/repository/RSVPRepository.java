@@ -1,15 +1,16 @@
 package com.example.EventSphere.repository;
 
-import com.example.EventSphere.model.Event;
-import com.example.EventSphere.model.RSVP;
-import com.example.EventSphere.model.User;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
+import com.example.EventSphere.model.Event;
+import com.example.EventSphere.model.RSVP;
+import com.example.EventSphere.model.User;
 
 @Repository
 public interface RSVPRepository extends JpaRepository<RSVP, Long> {
@@ -22,6 +23,9 @@ public interface RSVPRepository extends JpaRepository<RSVP, Long> {
     List<RSVP> findByUser(User user);
     
     List<RSVP> findByEvent(Event event);
+    
+    @Query("SELECT r FROM RSVP r JOIN FETCH r.user WHERE r.event = :event")
+    List<RSVP> findByEventWithUser(@Param("event") Event event);
     
     List<RSVP> findByEventAndStatus(Event event, RSVP.Status status);
     

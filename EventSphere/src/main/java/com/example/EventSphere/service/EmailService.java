@@ -1,14 +1,15 @@
 package com.example.EventSphere.service;
 
-import com.example.EventSphere.model.Event;
-import com.example.EventSphere.model.User;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-import java.time.format.DateTimeFormatter;
-import java.util.List;
+import com.example.EventSphere.model.Event;
+import com.example.EventSphere.model.User;
 
 @Service
 public class EmailService {
@@ -141,6 +142,22 @@ public class EmailService {
         sendEventNotification(event, users, subject, message);
     }
     
+    public void sendPasswordResetEmail(User user, String resetLink) {
+        String subject = "Password Reset Request";
+        String message = String.format(
+            "Hello %s,\n\n" +
+            "We received a request to reset your password. Please click the link below to set a new password.\n\n" +
+            "%s\n\n" +
+            "This link is valid for 10 minutes. If you did not request a password reset, you can safely ignore this email.\n\n" +
+            "Best regards,\n" +
+            "EventSphere Team",
+            user.getName(),
+            resetLink
+        );
+
+        sendEmail(user.getEmail(), subject, message);
+    }
+
     private void sendEmail(String to, String subject, String message) {
         try {
             if (mailSender != null) {

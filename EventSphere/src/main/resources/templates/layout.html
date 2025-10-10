@@ -21,7 +21,7 @@
             </button>
             
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
+                <ul class="navbar-nav me-auto align-items-lg-center">
                     <li class="nav-item">
                         <a class="nav-link" href="/">Home</a>
                     </li>
@@ -36,7 +36,7 @@
                     </li>
                 </ul>
                 
-                <ul class="navbar-nav">
+                <ul class="navbar-nav align-items-lg-center">
                     <li class="nav-item" sec:authorize="!isAuthenticated()">
                         <a class="nav-link" href="/login">Login</a>
                     </li>
@@ -45,6 +45,12 @@
                     </li>
                     <li class="nav-item" sec:authorize="!isAuthenticated()">
                         <a class="nav-link" href="/register-organizer">Become Organizer</a>
+                    </li>
+                    <li class="nav-item d-none d-lg-block" sec:authorize="!isAuthenticated()">
+                        <a class="btn btn-gradient-accent ms-lg-3" href="/register">Join Us</a>
+                    </li>
+                    <li class="nav-item d-lg-none" sec:authorize="!isAuthenticated()">
+                        <a class="nav-link nav-link-accent" href="/register">Join Us</a>
                     </li>
                     
                     <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
@@ -98,7 +104,7 @@
                     <p>Connecting communities through local events</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p>&copy; 2024 EventSphere. All rights reserved.</p>
+                    <p>&copy; 2025 EventSphere. All rights reserved.</p>
                 </div>
             </div>
         </div>

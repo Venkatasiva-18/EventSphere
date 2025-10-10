@@ -1,13 +1,17 @@
 package com.example.EventSphere.controller;
 
-import com.example.EventSphere.model.User;
-import com.example.EventSphere.service.UserService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.example.EventSphere.model.User;
+import com.example.EventSphere.service.UserService;
 
 @Controller
 @RequestMapping("/user")
@@ -51,9 +55,15 @@ public class UserController {
     @GetMapping("/profile")
     public String profile(Model model, Authentication authentication) {
         if (authentication != null && authentication.isAuthenticated()) {
-            User user = (User) authentication.getPrincipal();
-            model.addAttribute("user", user);
-            return "user/profile";
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof User) {
+                User user = (User) principal;
+                model.addAttribute("user", user);
+                return "user/profile";
+            } else {
+                // Admin trying to access user profile - redirect to admin dashboard
+                return "redirect:/admin/dashboard";
+            }
         }
         return "redirect:/login";
     }
@@ -61,13 +71,21 @@ public class UserController {
     @PostMapping("/update-profile")
     public String updateProfile(@ModelAttribute User user, Authentication authentication, RedirectAttributes redirectAttributes) {
         if (authentication != null && authentication.isAuthenticated()) {
-            User currentUser = (User) authentication.getPrincipal();
-            currentUser.setName(user.getName());
-            currentUser.setPhone(user.getPhone());
-            
-            userService.updateUser(currentUser);
-            redirectAttributes.addFlashAttribute("success", "Profile updated successfully!");
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof User) {
+                User currentUser = (User) principal;
+                currentUser.setName(user.getName());
+                currentUser.setPhone(user.getPhone());
+                
+                userService.updateUser(currentUser);
+                redirectAttributes.addFlashAttribute("success", "Profile updated successfully!");
+                return "redirect:/user/profile";
+            } else {
+                // Admin trying to update profile
+                redirectAttributes.addFlashAttribute("error", "Admins cannot update user profiles.");
+                return "redirect:/admin/dashboard";
+            }
         }
-        return "redirect:/user/profile";
+        return "redirect:/login";
     }
 }

@@ -1,14 +1,16 @@
 package com.example.EventSphere.service;
 
-import com.example.EventSphere.model.Event;
-import com.example.EventSphere.model.User;
-import com.example.EventSphere.repository.EventRepository;
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import com.example.EventSphere.model.Event;
+import com.example.EventSphere.model.User;
+import com.example.EventSphere.repository.EventRepository;
 
 @Service
 @Transactional
@@ -31,9 +33,41 @@ public class EventService {
     public Event updateEvent(Event event) {
         return eventRepository.save(event);
     }
+
+    public boolean isRegistrationClosed(Event event, LocalDateTime referenceTime) {
+        LocalDateTime deadline = event.getRegistrationDeadline();
+        if (deadline == null) {
+            return false;
+        }
+        return !referenceTime.isBefore(deadline);
+    }
     
+    @Transactional(readOnly = true)
+    public Event getEventWithDetails(Long eventId) {
+        Event event = eventRepository.findByIdWithDetails(eventId)
+            .orElseThrow(() -> new RuntimeException("Event not found"));
+        
+        // Initialize lazy collections within transaction to avoid LazyInitializationException
+        if (event.getRsvps() != null) {
+            event.getRsvps().size(); // Force initialization
+        }
+        if (event.getVolunteers() != null) {
+            event.getVolunteers().size(); // Force initialization
+        }
+        if (event.getOrganizer() != null) {
+            event.getOrganizer().getUserId(); // Force initialization of organizer
+        }
+        
+        return event;
+    }
+
+    @Transactional
     public void deleteEvent(Long eventId) {
-        eventRepository.deleteById(eventId);
+        Event event = eventRepository.findById(eventId)
+            .orElseThrow(() -> new RuntimeException("Event not found"));
+        
+        // The cascade will handle deletion of RSVPs and Volunteers
+        eventRepository.delete(event);
     }
     
     public void deactivateEvent(Long eventId) {
@@ -42,9 +76,19 @@ public class EventService {
         event.setActive(false);
         eventRepository.save(event);
     }
+
+    public void activateEvent(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+            .orElseThrow(() -> new RuntimeException("Event not found"));
+        // Admin can activate any event, including those that were previously deactivated
+        // The requiresApproval field is for future event approval workflow
+        event.setActive(true);
+        eventRepository.save(event);
+    }
     
     public Optional<Event> findById(Long eventId) {
-        return eventRepository.findById(eventId);
+        // Use findByIdWithOrganizer to eagerly fetch the organizer and avoid lazy loading issues
+        return eventRepository.findByIdWithOrganizer(eventId);
     }
     
     public Optional<Event> findByIdWithDetails(Long eventId) {
@@ -54,6 +98,12 @@ public class EventService {
             if (event.getRsvps() != null) {
                 event.getRsvps().size(); // Force initialization
             }
+            if (event.getVolunteers() != null) {
+                event.getVolunteers().size(); // Force initialization
+            }
+            if (event.getOrganizer() != null) {
+                event.getOrganizer().getUserId(); // Force initialization of organizer
+            }
         });
         return eventOpt;
     }
@@ -61,7 +111,19 @@ public class EventService {
     public List<Event> getAllActiveEvents() {
         return eventRepository.findAllActiveWithDetails();
     }
-    
+
+    public List<Event> getAllEvents() {
+        return eventRepository.findAllWithDetails();
+    }
+
+    public List<Event> getPendingEvents() {
+        return eventRepository.findAllWithDetails().stream()
+            .filter(event -> Boolean.TRUE.equals(event.getRequiresApproval()))
+            .sorted(Comparator.comparing(Event::getCreatedAt).reversed())
+            .toList();
+    }
+
+
     public List<Event> getUpcomingEvents() {
         return eventRepository.findUpcomingEventsWithDetails(LocalDateTime.now());
     }
@@ -86,8 +148,17 @@ public class EventService {
         return eventRepository.findEventsByDateRange(start, end);
     }
     
-    public List<Event> getEventsRequiringApproval() {
-        return eventRepository.findEventsRequiringApproval();
+
+    public List<Event> getEventsCompletedBefore(LocalDateTime cutoff) {
+        return eventRepository.findCompletedEventsBefore(cutoff);
+    }
+    
+    public List<Event> deleteEventsCompletedBefore(LocalDateTime cutoff) {
+        List<Event> eventsToDelete = getEventsCompletedBefore(cutoff);
+        if (!eventsToDelete.isEmpty()) {
+            eventRepository.deleteAll(eventsToDelete);
+        }
+        return List.copyOf(eventsToDelete);
     }
     
     public List<Event> getEventsByDateRangeAndCategory(LocalDateTime start, LocalDateTime end, Event.Category category) {

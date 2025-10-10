@@ -1,13 +1,14 @@
 package com.example.EventSphere.service;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
 import com.example.EventSphere.model.Event;
 import com.example.EventSphere.model.RSVP;
 import com.example.EventSphere.model.User;
 import com.example.EventSphere.repository.RSVPRepository;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class RSVPService {
@@ -19,15 +20,37 @@ public class RSVPService {
     }
     
     public RSVP createRSVP(Event event, User user, RSVP.Status status) {
+        return createRSVP(event, user, status, null, null);
+    }
+    
+    public RSVP createRSVP(Event event, User user, RSVP.Status status, String teamName, Integer teamSize) {
         // Check if user already has an RSVP for this event
         Optional<RSVP> existingRSVP = rsvpRepository.findByEventAndUser(event, user);
         
         if (existingRSVP.isPresent()) {
             RSVP rsvp = existingRSVP.get();
             rsvp.setStatus(status);
+            // Update team information if provided
+            if (teamName != null) {
+                rsvp.setTeamName(teamName);
+            } else {
+                rsvp.setTeamName(null);
+            }
+            if (teamSize != null) {
+                rsvp.setTeamSize(teamSize);
+            } else {
+                rsvp.setTeamSize(null);
+            }
             return rsvpRepository.save(rsvp);
         } else {
             RSVP rsvp = new RSVP(event, user, status);
+            // Set team information if provided
+            if (teamName != null) {
+                rsvp.setTeamName(teamName);
+            }
+            if (teamSize != null) {
+                rsvp.setTeamSize(teamSize);
+            }
             return rsvpRepository.save(rsvp);
         }
     }
@@ -61,6 +84,10 @@ public class RSVPService {
     
     public List<RSVP> getEventRSVPs(Event event) {
         return rsvpRepository.findByEvent(event);
+    }
+    
+    public List<RSVP> getEventRSVPsWithUsers(Event event) {
+        return rsvpRepository.findByEventWithUser(event);
     }
     
     public List<RSVP> getEventRSVPsByStatus(Event event, RSVP.Status status) {

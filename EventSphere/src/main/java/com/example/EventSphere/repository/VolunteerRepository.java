@@ -1,15 +1,16 @@
 package com.example.EventSphere.repository;
 
-import com.example.EventSphere.model.Event;
-import com.example.EventSphere.model.User;
-import com.example.EventSphere.model.Volunteer;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
+import com.example.EventSphere.model.Event;
+import com.example.EventSphere.model.User;
+import com.example.EventSphere.model.Volunteer;
 
 @Repository
 public interface VolunteerRepository extends JpaRepository<Volunteer, Long> {
@@ -22,6 +23,9 @@ public interface VolunteerRepository extends JpaRepository<Volunteer, Long> {
     List<Volunteer> findByUser(User user);
     
     List<Volunteer> findByEvent(Event event);
+    
+    @Query("SELECT v FROM Volunteer v JOIN FETCH v.user WHERE v.event = :event")
+    List<Volunteer> findByEventWithUser(@Param("event") Event event);
     
     List<Volunteer> findByEventAndStatus(Event event, Volunteer.Status status);
     

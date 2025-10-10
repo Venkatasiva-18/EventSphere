@@ -49,28 +49,24 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Add loading state to buttons on form submission (except logout)
-    const submitButtons = document.querySelectorAll('button[type="submit"]');
-    submitButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const form = this.closest('form');
+    const allForms = document.querySelectorAll('form');
+    allForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
             // Skip logout forms
-            if (form && form.action && form.action.includes('/logout')) {
+            if (form.action && form.action.includes('/logout')) {
                 return;
             }
-            if (form && form.checkValidity()) {
-                this.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Loading...';
-                this.disabled = true;
-            }
-        });
-    });
-
-    // Handle logout forms specifically
-    const logoutForms = document.querySelectorAll('form[action*="/logout"]');
-    logoutForms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            const submitBtn = this.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.disabled = false; // Ensure button is not disabled
+            
+            // Find the submit button that was clicked
+            const submitBtn = this.querySelector('button[type="submit"]:focus') || 
+                             this.querySelector('button[type="submit"]');
+            
+            if (submitBtn && form.checkValidity()) {
+                // Use setTimeout to allow form submission to start first
+                setTimeout(function() {
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Loading...';
+                    submitBtn.disabled = true;
+                }, 10);
             }
         });
     });

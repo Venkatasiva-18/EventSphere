@@ -12,8 +12,8 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="fas fa-calendar-alt me-2"></i>EventSphere
+            <a class="navbar-brand" href="/admin/dashboard">
+                <i class="fas fa-calendar-alt me-2"></i>EventSphere Admin
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -23,31 +23,44 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/">Home</a>
+                        <a class="nav-link active" href="/admin/dashboard">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/events">Events</a>
+                        <a class="nav-link" href="/admin/users">
+                            <i class="fas fa-users me-1"></i>Users
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/events/create">Create Event</a>
+                        <a class="nav-link" href="/admin/events">
+                            <i class="fas fa-calendar-alt me-1"></i>Events
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="/admin/dashboard">Admin</a>
+                        <a class="nav-link" href="/admin/reports">
+                            <i class="fas fa-chart-bar me-1"></i>Reports
+                        </a>
                     </li>
                 </ul>
                 
                 <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/public-site" title="View Public Site">
+                            <i class="fas fa-home me-1"></i>Public Site
+                        </a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user me-1"></i>
+                            <i class="fas fa-user-shield me-1"></i>
                             <span sec:authentication="name">Admin</span>
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/user/profile">Profile</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/admin/profile"><i class="fas fa-user me-2"></i>Profile</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <form th:action="@{/logout}" method="post" class="d-inline">
-                                    <button type="submit" class="dropdown-item">Logout</button>
+                                <form th:action="@{/admin/logout}" method="post" class="d-inline w-100">
+                                    <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt me-2"></i>Logout</button>
                                 </form>
                             </li>
                         </ul>
@@ -110,8 +123,8 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h4 class="card-title" th:text="${eventsRequiringApproval}">0</h4>
-                                <p class="card-text">Pending Approval</p>
+                                <h4 class="card-title" th:text="${pendingEvents}">0</h4>
+                                <p class="card-text">Pending Events</p>
                             </div>
                             <div class="align-self-center">
                                 <i class="fas fa-clock fa-2x opacity-75"></i>
@@ -126,8 +139,8 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h4 class="card-title">Active</h4>
-                                <p class="card-text">Platform Status</p>
+                                <h4 class="card-title" th:text="${activeEvents}">0</h4>
+                                <p class="card-text">Active Events</p>
                             </div>
                             <div class="align-self-center">
                                 <i class="fas fa-check-circle fa-2x opacity-75"></i>
@@ -147,25 +160,21 @@
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <a href="/admin/users" class="btn btn-outline-primary w-100">
                                     <i class="fas fa-users me-2"></i>Manage Users
                                 </a>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <a href="/admin/events" class="btn btn-outline-success w-100">
                                     <i class="fas fa-calendar-alt me-2"></i>Manage Events
                                 </a>
                             </div>
-                            <div class="col-md-3">
-                                <a href="/events/create" class="btn btn-outline-info w-100">
-                                    <i class="fas fa-plus me-2"></i>Create Event
+                            <div class="col-md-4">
+                                <a href="/admin/events?filter=pending" class="btn btn-outline-warning w-100">
+                                    <i class="fas fa-clock me-2"></i>Pending Events
+                                    <span class="badge bg-warning text-dark ms-2" th:text="${pendingEvents}">0</span>
                                 </a>
-                            </div>
-                            <div class="col-md-3">
-                                <button class="btn btn-outline-warning w-100" onclick="showToast('Feature coming soon!', 'info')">
-                                    <i class="fas fa-chart-bar me-2"></i>Analytics
-                                </button>
                             </div>
                         </div>
                     </div>

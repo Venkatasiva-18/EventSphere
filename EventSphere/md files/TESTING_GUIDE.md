@@ -1,4 +1,3 @@
-# EventSphere - Testing Guide
 
 ## Quick Start
 
@@ -70,8 +69,6 @@ The application will start on: **http://localhost:8080**
 - ❌ Button shows "pending" - indicates CSRF token issue
 - ❌ Page doesn't redirect - check browser console for errors
 - ❌ User still logged in - check SecurityConfig
-
----
 
 ### Scenario 3: Test Organizer Logout ✅
 
