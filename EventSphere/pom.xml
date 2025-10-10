@@ -127,5 +127,9 @@
 			</plugin>
 		</plugins>
 	</build>
+	<build>
+    <finalName>EventSphere</finalName>
+</build>
+
 
 </project>
